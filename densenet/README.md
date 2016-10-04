@@ -7,9 +7,8 @@ This uses the python version of the [CIFAR-10 dataset](https://www.cs.toronto.ed
 * Weight decay is set to 1e-4.
 * Batch size is 64.
 * This implements DenseNet-40, i.e. 3 dense blocks of 12 layers each. The growth rate is set to 12.
-* A dropout with a keep probability of 0.8 is used for each convolution.
-* Convolutions don't use any bias as this would be offseted by batch normalization.
+* A dropout with a keep probability of 0.8 is used for each convolution. Convolutions don't use any bias.
 
-This achieved 92.5% accuracy on CIFAR-10 without data augmentation (the paper result is 93%).
+The resulting accuracy is 92.5% on CIFAR-10 without data augmentation (the paper result is 93%).
 
 ![Results](./results.png)
