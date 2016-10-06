@@ -26,16 +26,20 @@ def load_data(files, data_dir, label_count):
   labels = np.array([ [ float(i == label) for i in xrange(label_count) ] for label in labels ])
   return data, labels
 
-def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=200):
-  res = [ 0 ] * len(tensors)
-  batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]
-  batch_count = (len(batch_tensors[0]) + batch_size - 1) / batch_size
-  for batch_idx in xrange(batch_count):
-    for (placeholder, tensor) in batch_tensors:
-      feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]
-    tmp = session.run(tensors, feed_dict=feed_dict)
-    res = [ r + t for (r, t) in zip(res, tmp) ]
-  return [ r / float(batch_count) for r in res ]
+def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=200):                              
+  res = [ 0 ] * len(tensors)                                                                                           
+  batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]                    
+  total_size = len(batch_tensors[0][1])                                                                                
+  batch_count = (total_size + batch_size - 1) / batch_size                                                             
+  for batch_idx in xrange(batch_count):                                                                                
+    current_batch_size = None                                                                                          
+    for (placeholder, tensor) in batch_tensors:                                                                        
+      batch_tensor = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]                                         
+      current_batch_size = len(batch_tensor)                                                                           
+      feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]                               
+    tmp = session.run(tensors, feed_dict=feed_dict)                                                                    
+    res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]                                                   
+  return [ r / float(total_size) for r in res ]
 
 def weight_variable(shape):
   initial = tf.truncated_normal(shape, stddev=0.01)
