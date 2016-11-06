@@ -186,8 +186,6 @@ rhn_size = 256
 def load(filename, valid_len=5000000, test_len=5000000):
   with open(filename, 'r') as f:
     data = f.read()
-  data = data[:1000]
-  valid_len = test_len = 100
   data = np.fromstring(data, dtype=np.uint8)
   unique, data = np.unique(data, return_inverse=True)
   train_data = data[: -valid_len - test_len]
