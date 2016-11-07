@@ -6,9 +6,10 @@ import time
 import numpy as np
 
 import keras.optimizers
-from keras.layers import Embedding, Dense
+from keras.layers import Embedding, Dense, LSTM
 from keras.models import Sequential
 from rhn import RHN
+from lstm_ln import LSTM_LN
 
 def subsequences(data, seqlen):
   data_shape = np.shape(data)
@@ -34,7 +35,7 @@ def load(filename, valid_len=5000000, test_len=5000000):
   return train_data, valid_data, test_data, len(unique)
 
 print 'Loading data...'
-train_data, valid_data, test_data, dim = load('enwik8')
+train_data, valid_data, test_data, dim = load('text8')
 print dim
 train_x, train_y = subsequences(train_data, max_length)
 valid_x, valid_y = subsequences(valid_data, max_length)
@@ -45,7 +46,11 @@ print 'test', np.shape(test_x), np.shape(test_y)
 
 model = Sequential()
 model.add(Embedding(dim, dim, input_length=max_length, dropout=0.2))
-model.add(RHN(rhn_size, 2, dropout_W=0.2, dropout_U=0.2, consume_less='cpu'))
+if False:
+  model.add(RHN(rhn_size, 2, dropout_W=0.2, dropout_U=0.2, consume_less='cpu'))
+else:
+  model.add(LSTM_LN(rhn_size, dropout_W=0.2, dropout_U=0.2, consume_less='gpu'))
+
 model.add(Dense(dim, activation='softmax'))
 optimizer = keras.optimizers.SGD(lr=0.2)
 model.compile(loss='sparse_categorical_crossentropy',
@@ -53,8 +58,14 @@ model.compile(loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 start_time = time.time()
-history = model.fit(train_x, train_y,
-                    batch_size=batch_size,
-                    nb_epoch=epochs,
-                    validation_data=(valid_x, valid_y))
+psize = 25000
+losses = []
+for idx in xrange(1000000):
+  history = model.fit(train_x[idx*psize:(idx+1)*psize],
+                      train_y[idx*psize:(idx+1)*psize],
+                      batch_size=batch_size,
+                      nb_epoch=1)
+  losses.append(history.history['loss'][0])
+  print idx, losses
+#                      validation_data=(valid_x, valid_y))
 print (time.time() - start_time) / epochs
