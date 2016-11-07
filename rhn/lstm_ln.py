@@ -16,7 +16,7 @@ class LSTM_LN(LSTM):
   def build(self, input_shape):
     super(LSTM_LN, self).build(input_shape)
     self.gs, self.bs = [], []
-    for i in xrange(4):
+    for i in xrange(5):
       self.gs += [ self.init((self.output_dim,), name='{}_g%i'.format(self.name, i)) ]
       self.bs += [ K.zeros((self.output_dim,), name='{}_b%d'.format(self.name, i)) ]
     self.trainable_weights += self.gs + self.bs
@@ -58,5 +58,5 @@ class LSTM_LN(LSTM):
       c = f * c_tm1 + i * self.activation(self.norm(x_c + K.dot(h_tm1 * B_U[2], self.U_c), 2))
       o = self.inner_activation(self.norm(x_o + K.dot(h_tm1 * B_U[3], self.U_o), 3))
 
-    h = o * self.activation(c)
+    h = o * self.activation(self.norm(c, 4))
     return h, [h, c]
