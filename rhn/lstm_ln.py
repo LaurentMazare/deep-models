@@ -3,6 +3,9 @@ from keras.layers import LSTM, time_distributed_dense
 from keras import initializations, activations, regularizers
 from keras.engine import InputSpec
 
+# LSTM with Layer Normalization as described in:
+# https://arxiv.org/pdf/1607.06450v1.pdf
+#   page 13, equation (20), (21), and (22)
 class LSTM_LN(LSTM):
   def __init__(self, output_dim, **kwargs):
     super(LSTM_LN, self).__init__(output_dim, **kwargs)
@@ -18,7 +21,7 @@ class LSTM_LN(LSTM):
     self.gs, self.bs = [], []
     for i in xrange(3):
       f = 1 if i == 2 else 4
-      self.gs += [ self.init((f*self.output_dim,), name='{}_g%i'.format(self.name, i)) ]
+      self.gs += [ K.ones((f*self.output_dim,), name='{}_g%i'.format(self.name, i)) ]
       self.bs += [ K.zeros((f*self.output_dim,), name='{}_b%d'.format(self.name, i)) ]
     self.trainable_weights += self.gs + self.bs
 
