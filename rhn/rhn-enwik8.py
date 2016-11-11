@@ -11,61 +11,57 @@ from keras.models import Sequential
 from rhn import RHN
 from lstm_ln import LSTM_LN
 
-def subsequences(data, seqlen):
-  data_shape = np.shape(data)
-  shape = data_shape[0] - seqlen + 1, seqlen
-  strides = [ data.strides[0] ] + list(data.strides)
-  xs = np.lib.stride_tricks.as_strided(data, shape=shape, strides=strides)
-  ys = data[seqlen:]
-  return xs[:-1], ys
-
-max_length = 50
-batch_size = 100
+seq_len = 180
+batch_size = 128
 epochs = 10
 rhn_size = 256
 
-def load(filename, valid_len=5000000, test_len=5000000):
+def load(filename):
   with open(filename, 'r') as f:
     data = f.read()
   data = np.fromstring(data, dtype=np.uint8)
   unique, data = np.unique(data, return_inverse=True)
-  train_data = data[: -valid_len - test_len]
-  valid_data = data[-valid_len - test_len : -test_len]
-  test_data = data[-test_len:]
-  return train_data, valid_data, test_data, len(unique)
+  return data, len(unique)
 
 print 'Loading data...'
-train_data, valid_data, test_data, dim = load('text8')
-print dim
-train_x, train_y = subsequences(train_data, max_length)
-valid_x, valid_y = subsequences(valid_data, max_length)
-test_x, test_y = subsequences(test_data, max_length)
-print 'train', np.shape(train_x), np.shape(train_y)
-print 'valid', np.shape(train_x), np.shape(train_y)
-print 'test', np.shape(test_x), np.shape(test_y)
+data, dim = load('text8')
+print 'Alphabet size', dim
+
+def batchXY(start_idx, length):
+  Xs = np.zeros((length, dim), dtype='float32')
+  Xs[np.arange(length), data[start_idx:start_idx+length]] = 1
+  X, Y = [], []
+  for idx in xrange(0, length-seq_len, seq_len):
+    X.append(Xs[idx:idx+seq_len, :])
+    Y.append(data[start_idx+idx+seq_len])
+  return np.array(X), np.array(Y)
+
+lbatch_size = 5*10**6
+validX, validY = batchXY(90*10**6, lbatch_size)
+print "Valid", np.shape(validX), np.shape(validY)
 
 model = Sequential()
-model.add(Embedding(dim, dim, input_length=max_length, dropout=0.2))
+input_shape=(seq_len, dim)
 if False:
-  model.add(RHN(rhn_size, 2, dropout_W=0.2, dropout_U=0.2, consume_less='cpu'))
+  model.add(RHN(rhn_size, 2, dropout_W=0.5, dropout_U=0.5, consume_less='cpu', input_shape=input_shape))
 else:
-  model.add(LSTM_LN(rhn_size, dropout_W=0.2, dropout_U=0.2, consume_less='gpu'))
+  model.add(LSTM(rhn_size, dropout_W=0.5, dropout_U=0.5, consume_less='gpu', input_shape=input_shape))
 
 model.add(Dense(dim, activation='softmax'))
-optimizer = keras.optimizers.SGD(lr=0.2)
+optimizer = keras.optimizers.Adam(lr=0.001, clipnorm=1.)
+
+print "Compiling model..."
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer=optimizer,
               metrics=['accuracy'])
 
-start_time = time.time()
-psize = 25000
 losses = []
-for idx in xrange(1000000):
-  history = model.fit(train_x[idx*psize:(idx+1)*psize],
-                      train_y[idx*psize:(idx+1)*psize],
-                      batch_size=batch_size,
-                      nb_epoch=1)
-  losses.append(history.history['loss'][0])
-  print idx, losses
-#                      validation_data=(valid_x, valid_y))
-print (time.time() - start_time) / epochs
+for epoch_idx in xrange(epochs):
+  start_time = time.time()
+  for cnt in xrange(18):
+    X, Y = batchXY(cnt * lbatch_size, lbatch_size)
+    model.fit(X, Y, batch_size=batch_size, nb_epoch=1)
+  loss = model.evaluate(X, Y, batch_size=batch_size)
+  losses.append(loss)
+  print epoch_idx, time.time() - start_time
+  print losses
