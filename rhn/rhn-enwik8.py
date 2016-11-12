@@ -48,7 +48,7 @@ else:
   model.add(LSTM(rhn_size, dropout_W=0.5, dropout_U=0.5, consume_less='gpu', input_shape=input_shape))
 
 model.add(Dense(dim, activation='softmax'))
-optimizer = keras.optimizers.Adam(lr=0.001, clipnorm=1.)
+optimizer = keras.optimizers.Adam(lr=0.001)
 
 print "Compiling model..."
 model.compile(loss='sparse_categorical_crossentropy',
@@ -61,7 +61,7 @@ for epoch_idx in xrange(epochs):
   for cnt in xrange(18):
     X, Y = batchXY(cnt * lbatch_size, lbatch_size)
     model.fit(X, Y, batch_size=batch_size, nb_epoch=1)
-  loss = model.evaluate(X, Y, batch_size=batch_size)
+  loss = model.evaluate(validX, validY, batch_size=batch_size)
   losses.append(loss)
   print epoch_idx, time.time() - start_time
   print losses

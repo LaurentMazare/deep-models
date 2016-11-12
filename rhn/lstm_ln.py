@@ -12,8 +12,8 @@ class LSTM_LN(LSTM):
 
   def norm(self, xs, norm_id):
     mu = K.mean(xs, axis=-1, keepdims=True)
-    sigma = K.sqrt(K.var(xs, axis=-1, keepdims=True) + 1e-7)
-    xs = self.gs[norm_id] * (xs - mu) / sigma + self.bs[norm_id]
+    sigma = K.sqrt(K.var(xs, axis=-1, keepdims=True) + 1e-3)
+    xs = self.gs[norm_id] * (xs - mu) / (sigma + 1e-3) + self.bs[norm_id]
     return xs
 
   def build(self, input_shape):
