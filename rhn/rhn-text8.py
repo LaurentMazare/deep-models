@@ -13,8 +13,7 @@ from lstm_ln import LSTM_LN
 from lstm_zoneout import LSTM_zoneout
 
 seq_len = 180
-train_batch_size = 128
-test_batch_size = 4096
+batch_size = 128
 epochs = 1000
 rhn_size = 256
 
@@ -69,10 +68,10 @@ for epoch_idx in xrange(epochs):
   start_time = time.time()
   for cnt in xrange(train_lbatch):
     X, Y = batchXY(cnt * lbatch_size, lbatch_size)
-    model.fit(X, Y, batch_size=train_batch_size, nb_epoch=1)
+    model.fit(X, Y, batch_size=batch_size, nb_epoch=1)
   # Recompute the loss on the last batch
-  train_loss = model.evaluate(X, Y, batch_size=test_batch_size)
-  loss = model.evaluate(validX, validY, batch_size=test_batch_size)
+  train_loss = model.evaluate(X, Y, batch_size=batch_size)
+  loss = model.evaluate(validX, validY, batch_size=batch_size)
   bpcs.append((train_loss[0]/np.log(2), loss[0]/np.log(2)))
   print epoch_idx, time.time() - start_time
   print bpcs
