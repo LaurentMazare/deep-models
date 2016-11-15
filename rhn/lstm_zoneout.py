@@ -17,9 +17,9 @@ class LSTM_zoneout(LSTM):
   def zoneout(self, v, prev_v, pr=0.):
     diff = v - prev_v
     diff = K.in_train_phase(K.dropout(diff, pr, noise_shape=(self.output_dim,)), diff)
-    # In testing, return v * (1-pr) + pr * prev_v
-    # In training when dropout returns 0, return prev_v
-    #             when dropout diff/(1-pr), return v
+    # In testing, always return v * (1-pr) + prev_v * pr
+    # In training when K.dropout returns 0, return prev_v
+    #             when K.dropout returns diff/(1-pr), return v
     return prev_v + diff * (1-pr)
 
   def step(self, x, states):
