@@ -117,7 +117,7 @@ def run_model(data, image_dim, label_count, depth):
   with tf.Session(graph=graph) as session:
     batch_size = 64
     learning_rate = 0.1
-    session.run(tf.initialize_all_variables())
+    session.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     train_data, train_labels = data['train_data'], data['train_labels']
     batch_count = len(train_data) / batch_size

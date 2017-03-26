@@ -115,7 +115,7 @@ def run_model(data, image_dim, label_count):
     batches_data = np.split(train_data[:batch_count*batch_size], batch_count)
     batches_labels = np.split(train_labels[:batch_count*batch_size], batch_count)
     learning_rate = 0.1
-    session.run(tf.initialize_all_variables())
+    session.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     for epoch in xrange(1, 1+90):
       if epoch == 30: learning_rate = 0.01
