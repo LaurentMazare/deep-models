@@ -67,8 +67,9 @@ def basic_block(input, in_features, out_features, stride, is_training, keep_prob
       shortcut = tf.nn.avg_pool(input, [ 1, 1, 1, 1 ], [1, stride, stride, 1 ], 'VALID')
       shortcut = conv2d(shortcut, in_features, out_features/2, 1, 1)
       return shortcut
-    shortcut1 = shortcut_branch(input)
-    shifted_input = tf.pad(input, [[ 0, 0 ], [ 0, 1 ], [ 0, 1 ], [ 0, 0 ]])
+    input_relu = tf.nn.relu(input)
+    shortcut1 = shortcut_branch(input_relu)
+    shifted_input = tf.pad(input_relu, [[ 0, 0 ], [ 0, 1 ], [ 0, 1 ], [ 0, 0 ]])
     shifted_input = tf.slice(shifted_input, [ 0, 1, 1, 0 ], [ -1, -1, -1, -1 ])
     shortcut2 = shortcut_branch(shifted_input)
     shortcut = tf.concat([ shortcut1, shortcut2 ], 3)
@@ -109,7 +110,7 @@ def run_model(data, image_dim, label_count):
 
     current = tf.reshape(xs, [ -1, 32, 32, 3 ])
     current = conv2d(current, 3, 16, 3, 1)
-    current = tf.nn.relu(current)
+    current = tf.contrib.layers.batch_norm(current, scale=True, is_training=is_training, updates_collections=None)
 
     K = 2
     current = block_stack(current, 16,   16*K, 1, 4, is_training, keep_prob)
