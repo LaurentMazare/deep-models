@@ -58,7 +58,7 @@ def conv2d(input, in_features, out_features, kernel_size, stride):
   W = weight_variable([ kernel_size, kernel_size, in_features, out_features ])
   return tf.nn.conv2d(input, W, [ 1, stride, stride, 1 ], padding='SAME')
 
-def basic_block(input, in_features, out_features, stride, is_training, keep_prob):
+def basic_block(input, in_features, out_features, stride, is_training):
   if in_features == out_features:
     assert(stride == 1);
     shortcut = input
@@ -90,10 +90,10 @@ def basic_block(input, in_features, out_features, stride, is_training, keep_prob
     raise Exception('unknown mode ' + mode)
   return shortcut + alpha * branch1 + (1 - alpha) * branch2
 
-def block_stack(input, in_features, out_features, stride, depth, is_training, keep_prob):
-  current = basic_block(input, in_features, out_features, stride, is_training, keep_prob)
+def block_stack(input, in_features, out_features, stride, depth, is_training):
+  current = basic_block(input, in_features, out_features, stride, is_training)
   for _d in xrange(depth - 1):
-    current = basic_block(current, out_features, out_features, 1, is_training, keep_prob)
+    current = basic_block(current, out_features, out_features, 1, is_training)
   return current
 
 def run_model(data, image_dim, label_count):
@@ -102,7 +102,6 @@ def run_model(data, image_dim, label_count):
     xs = tf.placeholder("float", shape=[None, image_dim])
     ys = tf.placeholder("float", shape=[None, label_count])
     lr = tf.placeholder("float", shape=[])
-    keep_prob = tf.placeholder(tf.float32)
     is_training = tf.placeholder("bool", shape=[])
 
     current = tf.reshape(xs, [ -1, 32, 32, 3 ])
@@ -110,9 +109,9 @@ def run_model(data, image_dim, label_count):
     current = tf.contrib.layers.batch_norm(current, scale=True, is_training=is_training, updates_collections=None)
 
     K = 2
-    current = block_stack(current, 16,   16*K, 1, 4, is_training, keep_prob)
-    current = block_stack(current, 16*K, 32*K, 2, 4, is_training, keep_prob)
-    current = block_stack(current, 32*K, 64*K, 2, 4, is_training, keep_prob)
+    current = block_stack(current, 16,   16*K, 1, 4, is_training)
+    current = block_stack(current, 16*K, 32*K, 2, 4, is_training)
+    current = block_stack(current, 32*K, 64*K, 2, 4, is_training)
 
     current = tf.nn.relu(current)
     current = tf.reduce_mean(current, reduction_indices=[1, 2], name="avg_pool")
@@ -145,11 +144,11 @@ def run_model(data, image_dim, label_count):
         batch_labels = batches_labels[batch_idx]
       
         batch_res = session.run([ train_step, cross_entropy, accuracy ],
-          feed_dict = { xs: batch_data, ys: batch_labels, lr: learning_rate, is_training: True, keep_prob: 0.8 })
+          feed_dict = { xs: batch_data, ys: batch_labels, lr: learning_rate, is_training: True })
 
       save_path = saver.save(session, 'resnet_%d.ckpt' % epoch)
       test_results = run_in_batch_avg(session, [ cross_entropy, accuracy ], [ xs, ys ],
-          feed_dict = { xs: data['test_data'], ys: data['test_labels'], is_training: False, keep_prob: 1. })
+          feed_dict = { xs: data['test_data'], ys: data['test_labels'], is_training: False })
       print epoch, batch_res[1:], test_results
 
 def run():
