@@ -63,16 +63,13 @@ def basic_block(input, in_features, out_features, stride, is_training, keep_prob
     assert(stride == 1);
     shortcut = input
   else:
-    def shortcut_branch(input):
-      shortcut = tf.nn.avg_pool(input, [ 1, 1, 1, 1 ], [1, stride, stride, 1 ], 'VALID')
-      shortcut = conv2d(shortcut, in_features, out_features/2, 1, 1)
-      return shortcut
     input_relu = tf.nn.relu(input)
-    shortcut1 = shortcut_branch(input_relu)
-    shifted_input = tf.pad(input_relu, [[ 0, 0 ], [ 0, 1 ], [ 0, 1 ], [ 0, 0 ]])
-    shifted_input = tf.slice(shifted_input, [ 0, 1, 1, 0 ], [ -1, -1, -1, -1 ])
-    shortcut2 = shortcut_branch(shifted_input)
-    shortcut = tf.concat([ shortcut1, shortcut2 ], 3)
+    if stride == 1:
+      shortcut = conv2d(input_relu, in_features, out_features, 1, 1)
+    else:
+      shortcut1 = conv2d(input_relu[:,::stride,::stride,:], in_features, out_features/2, 1, 1)
+      shortcut2 = conv2d(input_relu[:,1::stride,1::stride,:], in_features, out_features/2, 1, 1)
+      shortcut = tf.concat([ shortcut1, shortcut2 ], 3)
     shortcut = tf.contrib.layers.batch_norm(shortcut, scale=True, is_training=is_training, updates_collections=None)
 
   def branch(current):
