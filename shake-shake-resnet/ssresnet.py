@@ -12,7 +12,7 @@ def unpickle(file):
   dict = cPickle.load(fo)
   fo.close()
   if 'data' in dict:
-    dict['data'] = dict['data'].reshape((-1, 3, 32, 32)).swapaxes(1, 3).swapaxes(1, 2).reshape(-1, 32*32*3) / 256.
+    dict['data'] = dict['data'].reshape((-1, 3, 32, 32)).swapaxes(1, 3).swapaxes(1, 2) / 256.
   return dict
 
 def load_data_one(f):
@@ -96,15 +96,15 @@ def block_stack(input, in_features, out_features, stride, depth, is_training):
     current = basic_block(current, out_features, out_features, 1, is_training)
   return current
 
-def run_model(data, image_dim, label_count):
+def run_model(data, image_shape, label_count):
   graph = tf.Graph()
   with graph.as_default():
-    xs = tf.placeholder("float", shape=[None, image_dim])
+    xs = tf.placeholder("float", shape=[None] + image_shape)
     ys = tf.placeholder("float", shape=[None, label_count])
     lr = tf.placeholder("float", shape=[])
     is_training = tf.placeholder("bool", shape=[])
 
-    current = tf.reshape(xs, [ -1, 32, 32, 3 ])
+    current = xs
     current = conv2d(current, 3, 16, 3, 1)
     current = tf.contrib.layers.batch_norm(current, scale=True, is_training=is_training, updates_collections=None)
 
@@ -154,7 +154,6 @@ def run_model(data, image_dim, label_count):
 def run():
   data_dir = 'data'
   image_size = 32
-  image_dim = image_size * image_size * 3
   meta = unpickle(data_dir + '/batches.meta')
   label_names = meta['label_names']
   label_count = len(label_names)
@@ -170,6 +169,6 @@ def run():
       'train_labels': train_labels,
       'test_data': test_data,
       'test_labels': test_labels }
-  run_model(data, image_dim, label_count)
+  run_model(data, [ image_size, image_size, 3 ], label_count)
 
 run()
