@@ -1,6 +1,14 @@
 # This is an early attempt at replicating the Shake-Shake ResNet architecture in TensorFlow
 #     https://github.com/xgastaldi/shake-shake
-# This haven't been tested much so is likely to be buggy.
+# This hasn't been tested much so is likely to be buggy. It only reaches a validation error of
+# 6.9% with simple data augmentation (flipping and cropping) which is quite
+# below the expected validation error of 4.3%.
+#
+# Main differences:
+# - Use the standard momentum optimizer with a fixed learning rate schedule rather than learning
+#   rate annealing.
+# - For the first block where the stride is 1 but the number of input and output features are
+#   different, use a single 2d convolution rather than two of them.
 import numpy as np
 import tensorflow as tf
 
