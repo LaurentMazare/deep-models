@@ -69,7 +69,7 @@ def block(input, layers, in_features, growth, is_training, keep_prob):
   features = in_features
   for idx in xrange(layers):
     tmp = batch_activ_conv(current, features, growth, 3, is_training, keep_prob)
-    current = tf.concat(3, (current, tmp))
+    current = tf.concat((current, tmp), axis=3)
     features += growth
   return current, features
 
