@@ -1,20 +1,22 @@
 # cifar10-fast-jit
 
-This project demonstrates how to train a ResNet model on CIFAR using PyTorch
-Python api, save the trained model via Torch Script and run it in C++ on the
-test part of the CIFAR dataset.
+This project demonstrates how to train a ResNet model on
+[CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) using PyTorch Python
+api, save the trained model via Torch Script and run it in C++ on the test part
+of the CIFAR-10 dataset.
 
 The resulting model takes 828 microseconds to run per image on a single
 P100 GPU (this includes the time to copy the image from the main memory to GPU
 memory). This timing has been averaged over the 10000 images contained on the
-test dataset of CIFAR.  Each image is processed independently and the next
+test dataset of CIFAR-10.  Each image is processed independently and the next
 image only starts being processed after that the first image has been handled.
 
 The ResNet model is a trimmed down version of ResNet-9 from the
-[cifar10-fast](https://github.com/davidcpage/cifar10-fast) repo.
+[cifar10-fast repo](https://github.com/davidcpage/cifar10-fast).
 
 The main differences are that the model is smaller and is trained for longer
 to reach more than 94% accuracy on the test set of CIFAR-10.
+On 5 training runs the model reached accuracies from 94.12% to 94.72%.
 
 ## Run Inference
 
@@ -33,7 +35,7 @@ cd build
 cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch ..
 make
 cd ..
-make && ./build/infer
+./build/infer
 ```
 
 The returned accuracy should be ~94.53%.
@@ -42,10 +44,11 @@ On 10 runs the timings were no more than a 2 microseconds per image apart.
 
 This was run on [PyTorch](https://github.com/pytorch/pytorch)
 commit id 92dbd0219f6fbdb1db105386386ccf92c0758e86.
-
+The test set from CIFAR-10 can also be downloaded from the whole
+[CIFAR-10 dataset](https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz).
 ## Run Training
 
-The `model.pt` model file can be produced by running the training python script via:
+The `model.pt` model file can be produced by running the Python training script via:
 
 ```bash
 python train.py
