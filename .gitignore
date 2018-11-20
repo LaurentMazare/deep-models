@@ -1,3 +1,6 @@
+test_batch.bin
+model.pt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
