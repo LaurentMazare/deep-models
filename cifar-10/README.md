@@ -61,4 +61,6 @@ Note that this requires the 1.0 preview version of PyTorch.
 It should be easy to improve the timings above, for example by:
 
 - Running on a V100 rather than a P100.
-- Using half-precision floats rather than single-precision.
+- Using half-precision floats rather than single-precision. *Update
+  2018-11-30:* this does not seem to improve the results on a P100. Maybe the
+  GPU is not used enough for it to make a difference.
